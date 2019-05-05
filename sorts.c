@@ -1,108 +1,142 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-int lexicographic_sort(const char* a, const char* b) {
-    int i = 0;
-    while (i < strlen(a) && i < strlen(b)) {
-        char aChar = *(a+i);
-        char bChar = *(b+i);
-        if (aChar != bChar)
-            return aChar - bChar;
-        i++;
-    }
-    return strlen(a) - strlen(b);
-}
+#include <time.h>
 
-int lexicographic_sort_reverse(const char* a, const char* b) {
-    return -lexicographic_sort(a, b);
-}
-
-int sort_by_number_of_distinct_characters(const char* a, const char* b) {
-    int aChars[26] = {0};
-    int bChars[26] = {0};
-    
-    for (int i = 0; i < strlen(a); i++) {
-        int index = *(a+i) - 'a';
-        if (aChars[index] == 0)
-            aChars[index] = 1;
-    }
-    for (int i = 0; i < strlen(b); i++) {
-        int index = *(b+i) - 'a';
-        if (bChars[index] == 0)
-            bChars[index] = 1;
-    }
-    
-    int aCount = 0;
-    int bCount = 0;
-    for (int i = 0; i < 26; i++) {
-        if (aChars[i] == 1) aCount++;
-        if (bChars[i] == 1) bCount++;
-    }
-    return aCount - bCount;
-}
-
-int sort_by_length(const char* a, const char* b) {
-    return strlen(a) - strlen(b);
-}
-void swap(char* a, char* b);
+void selectionSort(int n, int* arr);
+void insertionSort(int n, int* arr);
+void mergeSort(int n, int* arr);
+void mergeHelper(int n, int* arr, int start, int end);
+void merge(int n, int*arr, int start1, int start2, int end);
+void quickSort(int n, int* arr);
+void heapSort(int n, int* arr);
+void swap(int i, int j, int* arr);
+void print(int n, int* arr);
+int* copy(int n, int* arr);
 
 
-void string_sort(char** arr,const int len,int (*cmp_func)(const char* a, const char* b)){
-    char** ptr1 = arr;
-    for (int i = 0; i < len - 1; i++) {
-        char** ptr2 = ptr1;
-        char** min = ptr2;
-        for (int j = i; j < len; j++) {
-            if (cmp_func(*ptr2, *min) < 0) {
-                min = ptr2;
-            }
-            ptr2++;
-        }
-        swap(ptr1, min);
-        ptr1++;
-    }
-}
-
-void swap(char* a, char* b) {
-    char temp = *a;
-    *a = *b;
-    *b = temp;
-}
-
-
-int main() 
-{
-    int n;
-    scanf("%d", &n);
-  
-    char** arr;
-	arr = (char**)malloc(n * sizeof(char*));
-  
-    for(int i = 0; i < n; i++){
-        *(arr + i) = malloc(1024 * sizeof(char));
-        scanf("%s", *(arr + i));
-        *(arr + i) = realloc(*(arr + i), strlen(*(arr + i)) + 1);
-    }
-  
-    string_sort(arr, n, lexicographic_sort);
-    for(int i = 0; i < n; i++)
-        printf("%s\n", arr[i]);
-    printf("\n");
-
-    string_sort(arr, n, lexicographic_sort_reverse);
-    for(int i = 0; i < n; i++)
-        printf("%s\n", arr[i]); 
-    printf("\n");
-
-    string_sort(arr, n, sort_by_length);
-    for(int i = 0; i < n; i++)
-        printf("%s\n", arr[i]);    
-    printf("\n");
-
-    string_sort(arr, n, sort_by_number_of_distinct_characters);
-    for(int i = 0; i < n; i++)
-        printf("%s\n", arr[i]); 
-    printf("\n");
+int main() {
+	
+	srand(time(0));
+	
+	int n;
+	printf("How many numbers? ");
+	scanf("%d", &n);
+	
+	int* arr = malloc(n * sizeof(int));
+	for (int i = 0; i < n; i++) {
+		arr[i] = rand() % 100;
+	}
+	
+	//sort array
+	selectionSort(n, arr);
+	insertionSort(n, arr);
+	mergeSort(n, arr);
+	
 	
 	free(arr);
+	
+	return 0;
+}
+
+void print(int n, int* arr) {
+	printf("[");
+	for (int i = 0; i < n - 1; i++) {
+		printf("%02d, ", arr[i]);
+	}
+	printf("%02d]\n", arr[n-1]);
+}
+
+int* copy(int n, int*arr) {
+	int* cp = malloc(n * sizeof(int));
+	for (int i = 0; i < n; i++) {
+		cp[i] = arr[i];
+	}
+	return cp;
+}
+
+void swap(int i, int j, int* arr) {
+	int temp = arr[j];
+	arr[j] = arr[i];
+	arr[i] = temp;
+}
+
+void selectionSort(int n, int* arr) {
+	printf("Selection Sort:\n");
+	print(n, arr);
+	arr = copy(n, arr);
+	for (int i = 0; i < n - 1; i++) {
+		int min = i;
+		for (int j = i + 1; j < n; j++) {
+			if (arr[j] < arr[min]) {
+				min = j;
+			}
+		}
+		swap(i, min, arr);
+		print(n, arr);
+	}
+	free(arr);
+}
+
+void insertionSort(int n, int* arr) {
+	printf("Insertion Sort:\n");
+	print(n, arr);
+	arr = copy(n, arr);
+	for (int i = 1; i < n; i++) {
+		int j = i;
+		while (arr[j] < arr[j-1] && j > 0) {
+			swap(j, j-1, arr);
+			j--;
+		}
+		print(n, arr);
+	}
+	free(arr);
+}
+
+void mergeSort(int n, int* arr) {
+	printf("Merge Sort:\n");
+	arr = copy(n, arr);
+	print(n, arr);
+	mergeHelper(n, arr, 0, n);
+	free(arr);
+}
+
+void mergeHelper(int n, int* arr, int start, int end) {
+	if (end - start <= 1)
+		return;
+	int mid = (start + end) / 2;
+	mergeHelper(n, arr, start, mid);
+	mergeHelper(n, arr, mid, end);
+	
+	merge(n, arr, start, mid, end);
+	print(n, arr);
+}
+
+void merge(int n, int* arr, int start1, int start2, int end) {
+	int size = end - start1;
+	int* temp = malloc(size * sizeof(int));
+	
+	int i = 0, a = start1, b = start2;
+	while (a < start2 && b < end) {
+		if (arr[a] < arr[b]) {
+			temp[i] = arr[a];
+			a++;
+		} else {
+			temp[i] = arr[b];
+		}
+		i++;
+	}
+	while (a < start2) {
+		temp[i] = arr[a];
+		a++;
+		i++;
+	}
+	while (b < end) {
+		temp[i] = arr[b];
+		b++;
+		i++;
+	}
+	
+	for (int j = 0; j < size; j++) {
+		arr[j + start1] = temp[j];
+	}
 }
