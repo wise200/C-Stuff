@@ -1,6 +1,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+int main() {
+	int a = 0, b= 0, c = 0;
+	b = 10;
+	c++;
+	printf("addresses: %#x %#x %#x\n", &a, &b, &c);
+	printf("%d", a);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//fib stuff
+/*
 long long fib(int n) {
 	if (n <= 0) return -1;
 	if (n < 3) return 1;
@@ -25,3 +50,4 @@ int main(int argc, char **argv) {
 	
 	return 0;
 }
+*/
