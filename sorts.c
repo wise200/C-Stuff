@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+void sort(int n, int* arr, void (*sort)(int, int*));
 void selectionSort(int n, int* arr);
 void insertionSort(int n, int* arr);
 void mergeSort(int n, int* arr);
@@ -28,15 +29,21 @@ int main() {
 	}
 	
 	//sort array
-	selectionSort(n, arr);
-	insertionSort(n, arr);
-	mergeSort(n, arr);
-	
+	sort(n, arr, selectionSort);
+	sort(n, arr, insertionSort);
+	sort(n, arr, mergeSort);
 	
 	free(arr);
 	
 	return 0;
 }
+
+void sort(int n, int* arr, void (*sort)(int, int*)) {
+	arr = copy(n, arr);
+	sort(n, arr);
+	free(arr);
+}
+
 
 void print(int n, int* arr) {
 	printf("[");
@@ -61,9 +68,8 @@ void swap(int i, int j, int* arr) {
 }
 
 void selectionSort(int n, int* arr) {
-	printf("Selection Sort:\n");
+	printf("\nSelection Sort:\n");
 	print(n, arr);
-	arr = copy(n, arr);
 	for (int i = 0; i < n - 1; i++) {
 		int min = i;
 		for (int j = i + 1; j < n; j++) {
@@ -74,13 +80,11 @@ void selectionSort(int n, int* arr) {
 		swap(i, min, arr);
 		print(n, arr);
 	}
-	free(arr);
 }
 
 void insertionSort(int n, int* arr) {
-	printf("Insertion Sort:\n");
+	printf("\nInsertion Sort:\n");
 	print(n, arr);
-	arr = copy(n, arr);
 	for (int i = 1; i < n; i++) {
 		int j = i;
 		while (arr[j] < arr[j-1] && j > 0) {
@@ -89,26 +93,22 @@ void insertionSort(int n, int* arr) {
 		}
 		print(n, arr);
 	}
-	free(arr);
 }
 
 void mergeSort(int n, int* arr) {
-	printf("Merge Sort:\n");
-	arr = copy(n, arr);
+	printf("\nMerge Sort:\n");
 	print(n, arr);
 	mergeHelper(n, arr, 0, n);
-	free(arr);
 }
 
 void mergeHelper(int n, int* arr, int start, int end) {
-	if (end - start <= 1)
-		return;
-	int mid = (start + end) / 2;
-	mergeHelper(n, arr, start, mid);
-	mergeHelper(n, arr, mid, end);
-	
-	merge(n, arr, start, mid, end);
-	print(n, arr);
+	if (end - start > 1) {
+		int mid = (start + end) / 2;
+		mergeHelper(n, arr, start, mid);
+		mergeHelper(n, arr, mid, end);
+		
+		merge(n, arr, start, mid, end);
+	}
 }
 
 void merge(int n, int* arr, int start1, int start2, int end) {
@@ -122,6 +122,7 @@ void merge(int n, int* arr, int start1, int start2, int end) {
 			a++;
 		} else {
 			temp[i] = arr[b];
+			b++;
 		}
 		i++;
 	}
@@ -139,4 +140,8 @@ void merge(int n, int* arr, int start1, int start2, int end) {
 	for (int j = 0; j < size; j++) {
 		arr[j + start1] = temp[j];
 	}
+		
+	print(size, temp);
+	
+	free(temp);
 }
