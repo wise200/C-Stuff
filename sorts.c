@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <windows.h>
 
 void sort(int n, int* arr, void (*sort)(int, int*));
 void selectionSort(int n, int* arr);
@@ -9,9 +10,11 @@ void mergeSort(int n, int* arr);
 void mergeHelper(int n, int* arr, int start, int end);
 void merge(int n, int*arr, int start1, int start2, int end);
 void quickSort(int n, int* arr);
+void quickSortHelper(int n, int* arr, int start, int end);
 void heapSort(int n, int* arr);
 void swap(int i, int j, int* arr);
 void print(int n, int* arr);
+void printPivot(int n, int* arr, int pivot);
 int* copy(int n, int* arr);
 
 
@@ -32,6 +35,7 @@ int main() {
 	sort(n, arr, selectionSort);
 	sort(n, arr, insertionSort);
 	sort(n, arr, mergeSort);
+	sort(n, arr, quickSort);
 	
 	free(arr);
 	
@@ -49,6 +53,21 @@ void print(int n, int* arr) {
 	printf("[");
 	for (int i = 0; i < n - 1; i++) {
 		printf("%02d, ", arr[i]);
+	}
+	printf("%02d]\n", arr[n-1]);
+}
+
+void printPivot(int n, int* arr, int pivot) {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	printf("[");
+	for (int i = 0; i < n - 1; i++) {
+		if (i != pivot) 
+			printf("%02d, ", arr[i]);
+		else {
+			SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+			printf("%02d, ", arr[i]);
+			SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+		}
 	}
 	printf("%02d]\n", arr[n-1]);
 }
@@ -144,4 +163,27 @@ void merge(int n, int* arr, int start1, int start2, int end) {
 	print(size, temp);
 	
 	free(temp);
+}
+
+void quickSort(int n, int* arr) {
+	printf("\nQuick Sort:\n");
+	print(n, arr);
+	quickSortHelper(n, arr, 0, n);
+	print(n, arr);
+}
+
+void quickSortHelper(int n, int* arr, int start, int end) {
+	if (end - start > 1) {
+		int i = start;
+		for (int j = start; j < end - 1; j++) {
+			if (arr[j] < arr[end-1]) {
+				swap(i, j, arr);
+				i++;
+			}
+		}
+		swap(i, end-1, arr);
+		printPivot(n, arr, i);
+		quickSortHelper(n, arr, start, i);
+		quickSortHelper(n, arr, i+1, end);
+	}
 }
