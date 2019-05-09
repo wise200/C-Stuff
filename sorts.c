@@ -4,12 +4,12 @@
 #include <windows.h>
 #include <stdbool.h>
 
-void sort(int n, int* arr, void (*sort)(int, int*, bool));
+void sortCopy(int n, int* arr, void (*sort)(int, int*, bool));
 void selectionSort(int n, int* arr, bool show);
 void insertionSort(int n, int* arr, bool show);
 void mergeSort(int n, int* arr, bool show);
 void mergeHelper(int n, int* arr, int start, int end, bool show);
-void merge(int n, int*arr, int start1, int start2, int end);
+void merge(int n, int*arr, int start1, int start2, int end, bool show);
 void quickSort(int n, int* arr, bool show);
 void quickSortHelper(int n, int* arr, int start, int end, bool show);
 void heapSort(int n, int* arr, bool show);
@@ -18,21 +18,74 @@ int right(int i) {return 2 * i + 2;}
 int parent(int i) {return (i-1) / 2;}
 void swap(int i, int j, int* arr);
 void print(int n, int* arr);
-void printPivot(int n, int* arr, int pivot);
+void printColor(int n, int* arr, int start, int end);
 int* copy(int n, int* arr);
+int** copy2D(int count, int n, int** arr);
 void randomSorts();
-void verify(void (*sort)(int, int*, bool));
-
+void verify(int n, int* arr);
+double timer(int count, int n, int** arr, void (*sort)(int, int*, bool));
+void compare(int n, int count);
+int randint(int max);
 
 int main() {
+	int count, n;
+	printf("Array length: ");
+	scanf("%d", &n);
+	printf("Iterations: ");
+	scanf("%d", &count);
 	
-	randomSorts();
+	compare(count, n);
 	
 	return 0;
 }
 
-void verify(void (*sort)(int, int*, bool)) {
+void compare(int count, int n) {
+	printf("Comparing sorts of size %d over %d iterations.\n\n", n, count);
+	srand(time(0));
+	int** arrs = malloc(count * sizeof(int*));
+	for (int i = 0; i < count; i++) {
+		arrs[i] = malloc(n * sizeof(int*));
+		for (int j = 0; j < n; j++) {
+			arrs[i][j] = randint(10*n);;
+		}
+	}
 	
+	printf("Selection Sort: %.3f seconds\n", timer(count, n, arrs, selectionSort));
+	printf("Insertion Sort: %.3f seconds\n", timer(count, n, arrs, insertionSort));
+	printf("Merge Sort: %.3f seconds\n", timer(count, n, arrs, mergeSort));
+	printf("Heap Sort: %.3f seconds\n", timer(count, n, arrs, heapSort));
+	printf("Quick Sort: %.3f seconds\n", timer(count, n, arrs, quickSort));
+	
+	for (int i = 0; i < count; i++) {
+		free(arrs[i]);
+	}
+	free(arrs);
+}
+
+int randint(int max) {
+	return (rand() << 16 | rand()) % max;
+}
+
+double timer(int count, int n, int** arrs, void (*sort)(int, int*, bool)) {
+	arrs = copy2D(count, n, arrs);
+	clock_t time = clock();
+	for (int i = 0; i < count; i++) {
+		sort(n, arrs[i], false);
+		verify(n, arrs[i]);
+		free(arrs[i]);
+	}
+	free(arrs);
+	return ((double) (clock() - time)) / CLOCKS_PER_SEC;
+}
+
+void verify(int n, int* arr) {
+	for (int i = 1; i < n; i++) {
+		if (arr[i-1] > arr[i]) {
+			printf("Verification error:\n");
+			printColor(n, arr, i-1, i+1);
+			exit(1);
+		}
+	}
 }
 
 void randomSorts() {
@@ -48,18 +101,19 @@ void randomSorts() {
 	}
 	
 	//sort array
-	sort(n, arr, selectionSort);
-	sort(n, arr, insertionSort);
-	sort(n, arr, mergeSort);
-	sort(n, arr, quickSort);
-	sort(n, arr, heapSort);
+	sortCopy(n, arr, selectionSort);
+	sortCopy(n, arr, insertionSort);
+	sortCopy(n, arr, mergeSort);
+	sortCopy(n, arr, quickSort);
+	sortCopy(n, arr, heapSort);
 	
 	free(arr);
 }
 
-void sort(int n, int* arr, void (*sort)(int, int*, bool)) {
+void sortCopy(int n, int* arr, void (*sort)(int, int*, bool)) {
 	arr = copy(n, arr);
-	sort(n, arr);
+	sort(n, arr, true);
+	verify(n, arr);
 	free(arr);
 }
 
@@ -102,6 +156,14 @@ int* copy(int n, int*arr) {
 	return cp;
 }
 
+int** copy2D(int count, int n, int** arr) {
+	int** cp = malloc(count * sizeof(int*));
+	for (int i = 0; i < count; i++) {
+		cp[i] = copy(n, arr[i]);
+	}
+	return cp;
+}
+
 void swap(int i, int j, int* arr) {
 	int temp = arr[j];
 	arr[j] = arr[i];
@@ -109,8 +171,8 @@ void swap(int i, int j, int* arr) {
 }
 
 void selectionSort(int n, int* arr, bool show) {
-	printf("\nSelection Sort:\n");
-	print(n, arr);
+	if (show) printf("\nSelection Sort:\n");
+	if (show) print(n, arr);
 	for (int i = 0; i < n - 1; i++) {
 		int min = i;
 		for (int j = i + 1; j < n; j++) {
@@ -119,40 +181,40 @@ void selectionSort(int n, int* arr, bool show) {
 			}
 		}
 		swap(i, min, arr);
-		print(n, arr);
+		if (show) print(n, arr);
 	}
 }
 
 void insertionSort(int n, int* arr, bool show) {
-	printf("\nInsertion Sort:\n");
-	print(n, arr);
+	if (show) printf("\nInsertion Sort:\n");
+	if (show) print(n, arr);
 	for (int i = 1; i < n; i++) {
 		int j = i;
 		while (arr[j] < arr[j-1] && j > 0) {
 			swap(j, j-1, arr);
 			j--;
 		}
-		print(n, arr);
+		if (show) print(n, arr);
 	}
 }
 
 void mergeSort(int n, int* arr, bool show) {
-	printf("\nMerge Sort:\n");
-	print(n, arr);
-	mergeHelper(n, arr, 0, n);
+	if (show) printf("\nMerge Sort:\n");
+	if (show) print(n, arr);
+	mergeHelper(n, arr, 0, n, show);
 }
 
 void mergeHelper(int n, int* arr, int start, int end, bool show) {
 	if (end - start > 1) {
 		int mid = (start + end) / 2;
-		mergeHelper(n, arr, start, mid);
-		mergeHelper(n, arr, mid, end);
+		mergeHelper(n, arr, start, mid, show);
+		mergeHelper(n, arr, mid, end, show);
 		
-		merge(n, arr, start, mid, end);
+		merge(n, arr, start, mid, end, show);
 	}
 }
 
-void merge(int n, int* arr, int start1, int start2, int end) {
+void merge(int n, int* arr, int start1, int start2, int end, bool show) {
 	int size = end - start1;
 	int* temp = malloc(size * sizeof(int));
 	
@@ -182,16 +244,16 @@ void merge(int n, int* arr, int start1, int start2, int end) {
 		arr[j + start1] = temp[j];
 	}
 		
-	print(size, temp);
+	if (show) print(size, temp);
 	
 	free(temp);
 }
 
 void quickSort(int n, int* arr, bool show) {
-	printf("\nQuick Sort:\n");
-	print(n, arr);
-	quickSortHelper(n, arr, 0, n);
-	print(n, arr);
+	if (show) printf("\nQuick Sort:\n");
+	if (show) print(n, arr);
+	quickSortHelper(n, arr, 0, n, show);
+	if (show) print(n, arr);
 }
 
 void quickSortHelper(int n, int* arr, int start, int end, bool show) {
@@ -204,15 +266,15 @@ void quickSortHelper(int n, int* arr, int start, int end, bool show) {
 			}
 		}
 		swap(i, end-1, arr);
-		printColor(n, arr, i, i+1);
-		quickSortHelper(n, arr, start, i);
-		quickSortHelper(n, arr, i+1, end);
+		if (show) printColor(n, arr, i, i+1);
+		quickSortHelper(n, arr, start, i, show);
+		quickSortHelper(n, arr, i+1, end, show);
 	}
 }
 
 void heapSort(int n, int* arr, bool show) {
-	printf("\nHeap Sort:\n");
-	print(n, arr);
+	if (show) printf("\nHeap Sort:\n");
+	if (show) print(n, arr);
 	//Build heap
 	for (int i = 1; i < n; i++) {
 		 int j = i;
@@ -221,7 +283,7 @@ void heapSort(int n, int* arr, bool show) {
 			 j = parent(j);
 		 }
 	}
-	print(n, arr);
+	if (show) print(n, arr);
 	//Sort array
 	for (int i = n-1; i > 0; i--) {
 		swap(0, i, arr);
@@ -236,7 +298,7 @@ void heapSort(int n, int* arr, bool show) {
 				j = left(j);
 			}
 		}
-		printColor(n, arr, i, n);
+		if (show) printColor(n, arr, i, n);
 	}
-	print(n, arr);
+	if (show) print(n, arr);
 }
